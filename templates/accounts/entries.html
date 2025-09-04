@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Account for {{ client.name }}</h1>
+<table>
+<tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr>
+{% for entry in entries %}
+<tr>
+  <td>{{ entry.date }}</td>
+  <td>{{ entry.description }}</td>
+  <td>{{ entry.amount }}</td>
+  <td>{{ entry.balance }}</td>
+</tr>
+{% empty %}
+<tr><td colspan="4">No entries.</td></tr>
+{% endfor %}
+</table>
+{% endblock %}
