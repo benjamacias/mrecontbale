@@ -6,4 +6,4 @@ from .models import Invoice
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
-        fields = ["client", "number", "total"]
+        fields = ["client", "number", "total", "payment_method"]

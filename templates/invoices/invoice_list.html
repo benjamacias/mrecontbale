@@ -5,7 +5,11 @@
 <ul class="space-y-2">
   {% for invoice in object_list %}
   <li class="bg-white p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
-    {{ invoice.number }} - {{ invoice.client.name }} - {{ invoice.total }}
+    {{ invoice.number }} - {{ invoice.client.name }} - {{ invoice.total }} - {{ invoice.get_payment_method_display }}
+    <form action="{% url 'invoice-send' invoice.pk %}" method="post" class="inline">
+      {% csrf_token %}
+      <button type="submit" class="ml-2 text-blue-600 hover:underline">Enviar</button>
+    </form>
   </li>
   {% empty %}
   <li>No hay facturas.</li>
