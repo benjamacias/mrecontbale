@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Account for {{ client.name }}</h1>
-<p><a href="{% url 'account-entry-add' client.id %}">Add entry</a></p>
-<table>
-<tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr>
+<h1 class="text-2xl font-bold mb-4">Cuenta de {{ client.name }}</h1>
+<p class="mb-4"><a href="{% url 'account-entry-add' client.id %}" class="text-blue-600 hover:underline">Agregar movimiento</a></p>
+<table class="min-w-full bg-white rounded shadow">
+<tr class="bg-blue-600 text-white">
+  <th class="py-2 px-4">Fecha</th><th class="py-2 px-4">Descripción</th><th class="py-2 px-4">Monto</th><th class="py-2 px-4">Saldo</th>
+</tr>
 {% for entry in entries %}
-<tr>
-  <td>{{ entry.date }}</td>
-  <td>{{ entry.description }}</td>
-  <td>{{ entry.amount }}</td>
-  <td>{{ entry.balance }}</td>
+<tr class="border-b hover:bg-gray-100 transition-colors">
+  <td class="py-2 px-4">{{ entry.date }}</td>
+  <td class="py-2 px-4">{{ entry.description }}</td>
+  <td class="py-2 px-4">{{ entry.amount }}</td>
+  <td class="py-2 px-4">{{ entry.balance }}</td>
 </tr>
 {% empty %}
-<tr><td colspan="4">No entries.</td></tr>
+<tr><td colspan="4" class="py-4 text-center">No hay movimientos.</td></tr>
 {% endfor %}
 </table>
 {% endblock %}

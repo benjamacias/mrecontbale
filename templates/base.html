@@ -1,17 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Accounting System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema Contable</title>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: 0 },
+              '100%': { opacity: 1 }
+            }
+          },
+          animation: {
+            fadeIn: 'fadeIn 0.5s ease-in-out'
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <header>
-    <nav>
-      <a href="{% url 'client-list' %}">Clients</a> |
-      <a href="{% url 'invoice-list' %}">Invoices</a>
+<body class="bg-gray-100">
+  <header class="bg-blue-600 text-white p-4 shadow-md">
+    <nav class="flex space-x-4">
+      <a href="{% url 'client-list' %}" class="hover:text-gray-200 transition-colors duration-300">Clientes</a>
+      <a href="{% url 'invoice-list' %}" class="hover:text-gray-200 transition-colors duration-300">Facturas</a>
     </nav>
   </header>
-  <main>
+  <main class="container mx-auto p-4 animate-fadeIn">
     {% block content %}{% endblock %}
   </main>
 </body>
