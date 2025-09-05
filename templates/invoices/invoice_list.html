@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Invoices</h1>
-<p><a href="{% url 'invoice-create' %}">Add invoice</a></p>
-<ul>
+<h1 class="text-2xl font-bold mb-4">Facturas</h1>
+<p class="mb-4"><a href="{% url 'invoice-create' %}" class="text-blue-600 hover:underline">Agregar factura</a></p>
+<ul class="space-y-2">
   {% for invoice in object_list %}
-  <li>{{ invoice.number }} - {{ invoice.client.name }} - {{ invoice.total }}</li>
+  <li class="bg-white p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
+    {{ invoice.number }} - {{ invoice.client.name }} - {{ invoice.total }}
+  </li>
   {% empty %}
-  <li>No invoices.</li>
+  <li>No hay facturas.</li>
   {% endfor %}
 </ul>
 {% endblock %}
