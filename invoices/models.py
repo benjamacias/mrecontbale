@@ -17,6 +17,17 @@ class Invoice(models.Model):
     issued_at = models.DateField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     afip_authorization_code = models.CharField(max_length=64, blank=True)
+    
+    class PaymentMethod(models.TextChoices):
+        CASH = "cash", "Cash"
+        CARD = "card", "Credit Card"
+        TRANSFER = "transfer", "Bank Transfer"
+
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CASH,
+    )
 
     class Meta:
         ordering = ["-issued_at", "id"]
