@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Invoices</h1>
+<p><a href="{% url 'invoice-create' %}">Add invoice</a></p>
 <ul>
   {% for invoice in object_list %}
   <li>{{ invoice.number }} - {{ invoice.client.name }} - {{ invoice.total }}</li>

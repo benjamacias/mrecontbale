@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Account for {{ client.name }}</h1>
+<p><a href="{% url 'account-entry-add' client.id %}">Add entry</a></p>
 <table>
 <tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr>
 {% for entry in entries %}

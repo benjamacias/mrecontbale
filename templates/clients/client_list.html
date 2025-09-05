@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Clients</h1>
+<p><a href="{% url 'client-create' %}">Add client</a></p>
 <ul>
   {% for client in object_list %}
-  <li>{{ client.name }} - {{ client.tax_id }}</li>
+  <li><a href="{% url 'account-entries' client.id %}">{{ client.name }}</a> - {{ client.tax_id }}</li>
   {% empty %}
   <li>No clients.</li>
   {% endfor %}
