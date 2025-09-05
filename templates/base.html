@@ -5,6 +5,14 @@
   <title>Accounting System</title>
 </head>
 <body>
-  {% block content %}{% endblock %}
+  <header>
+    <nav>
+      <a href="{% url 'client-list' %}">Clients</a> |
+      <a href="{% url 'invoice-list' %}">Invoices</a>
+    </nav>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>
