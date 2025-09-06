@@ -3,16 +3,16 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """Custom user model supporting simple role-based access."""
+    """Modelo de usuario personalizado con acceso basado en roles."""
 
     class Roles(models.TextChoices):
-        ADMIN = "ADMIN", "Admin"
-        ACCOUNTANT = "ACCOUNTANT", "Accountant"
-        CLIENT = "CLIENT", "Client"
+        ADMIN = "ADMIN", "Administrador"
+        ACCOUNTANT = "ACCOUNTANT", "Contador"
+        CLIENT = "CLIENT", "Cliente"
 
     role = models.CharField(
         max_length=20,
         choices=Roles.choices,
         default=Roles.CLIENT,
-        help_text="Determines the level of access for the user.",
+        help_text="Determina el nivel de acceso del usuario.",
     )

@@ -6,7 +6,7 @@ from .afip import create_invoice_afip
 
 
 class Invoice(models.Model):
-    """Represents an invoice emitted for a client and optionally authorized by AFIP."""
+    """Representa una factura emitida para un cliente y opcionalmente autorizada por AFIP."""
 
     client = models.ForeignKey(
         "clients.Client",
@@ -19,9 +19,9 @@ class Invoice(models.Model):
     afip_authorization_code = models.CharField(max_length=64, blank=True)
     
     class PaymentMethod(models.TextChoices):
-        CASH = "cash", "Cash"
-        CARD = "card", "Credit Card"
-        TRANSFER = "transfer", "Bank Transfer"
+        CASH = "cash", "Efectivo"
+        CARD = "card", "Tarjeta de crédito"
+        TRANSFER = "transfer", "Transferencia bancaria"
 
     payment_method = models.CharField(
         max_length=20,
@@ -33,18 +33,18 @@ class Invoice(models.Model):
         ordering = ["-issued_at", "id"]
 
     def __str__(self):
-        return f"Invoice {self.number} - {self.client}"
+        return f"Factura {self.number} - {self.client}"
 
     def authorize_with_afip(self):
-        """Send invoice data to AFIP service and store authorization code."""
+        """Enviar los datos de la factura al servicio de AFIP y guardar el código de autorización."""
         self.afip_authorization_code = create_invoice_afip(self)
         self.save(update_fields=["afip_authorization_code"])
 
     def send_email(self):
-        """Send the invoice to the client's email."""
+        """Enviar la factura al correo del cliente."""
         if self.client.email:
             send_mail(
-                subject=f"Invoice {self.number}",
+                subject=f"Factura {self.number}",
                 message=f"Total: {self.total}",
                 from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
                 recipient_list=[self.client.email],
