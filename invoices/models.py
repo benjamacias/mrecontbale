@@ -13,11 +13,21 @@ class Invoice(models.Model):
         on_delete=models.CASCADE,
         related_name="invoices",
     )
+    class InvoiceType(models.TextChoices):
+        A = "A", "Factura A"
+        B = "B", "Factura B"
+        C = "C", "Factura C"
+
     description = models.TextField(blank=True, default="")
     number = models.CharField(max_length=30, blank=True)
     issued_at = models.DateField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     afip_authorization_code = models.CharField(max_length=64, blank=True)
+    invoice_type = models.CharField(
+        max_length=1,
+        choices=InvoiceType.choices,
+        default=InvoiceType.B,
+    )
     
     class PaymentMethod(models.TextChoices):
         CASH = "cash", "Efectivo"
@@ -34,7 +44,7 @@ class Invoice(models.Model):
         ordering = ["-issued_at", "id"]
 
     def __str__(self):
-        return f"Factura {self.number} - {self.client}"
+        return f"Factura {self.number or 'sin número'} ({self.get_invoice_type_display()}) - {self.client}"
 
     def authorize_with_afip(self):
         """Enviar los datos de la factura al servicio de AFIP y guardar el código de autorización."""

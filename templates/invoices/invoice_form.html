@@ -8,6 +8,7 @@
     {"name": "number", "label": "Número"},
     {"name": "total", "label": "Total"},
     {"name": "description", "label": "Descripción", "optional": true},
+    {"name": "invoice_type", "label": "Tipo de factura"},
     {"name": "payment_method", "label": "Método de pago"}
   ])'
 >
@@ -99,6 +100,10 @@
         <dd class="text-sm font-medium text-slate-700">
           [[ vm.isFilled('total') ? (vm.formData.total | currency:'$':2) : '$0.00' ]]
         </dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Tipo de factura</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('invoice_type', 'Sin tipo seleccionado') ]]</dd>
       </div>
       <div>
         <dt class="text-xs uppercase tracking-wide text-slate-400">Método de pago</dt>
