@@ -1,16 +1,99 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="text-2xl font-bold mb-4">Nueva Factura</h1>
-<form method="post" class="bg-white p-6 rounded shadow space-y-4 max-w-md">
-  {% csrf_token %}
-  {% for field in form %}
-  <div>
-    {{ field.label_tag }}
-    {{ field }}
-    {% if field.help_text %}<p class="text-sm text-gray-500">{{ field.help_text }}</p>{% endif %}
-    {% for error in field.errors %}<p class="text-red-500 text-sm">{{ error }}</p>{% endfor %}
+<section
+  class="mx-auto w-full max-w-4xl space-y-8"
+  ng-controller="FormController as vm"
+  ng-init='vm.init("invoice-form", [{"name": "client", "label": "Cliente"}, {"name": "number", "label": "Número"}, {"name": "total", "label": "Total"}, {"name": "payment_method", "label": "Método de pago"}])'
+>
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-widest text-indigo-600">Nueva factura</p>
+      <h2 class="text-3xl font-semibold text-slate-900">Generar comprobante</h2>
+      <p class="text-sm text-slate-500">Completá los datos de la operación para emitir el comprobante.</p>
+    </div>
+    <div class="rounded-2xl bg-white/80 px-4 py-3 text-right shadow-inner">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Avance</p>
+      <p class="text-2xl font-semibold text-indigo-600">[[ vm.completion ]]%</p>
+    </div>
   </div>
-  {% endfor %}
-  <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Guardar</button>
-</form>
+  <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+    <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-500" ng-style="{ width: vm.completion + '%' }"></div>
+  </div>
+
+  <form
+    id="invoice-form"
+    method="post"
+    class="space-y-8 rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200/60"
+    novalidate
+  >
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+      {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="grid gap-6 md:grid-cols-2">
+      {% for field in form %}
+      <div class="space-y-1 md:col-span-{% if field.name == 'number' or field.name == 'total' %}1{% else %}2{% endif %}">
+        <label for="{{ field.id_for_label }}" class="text-sm font-semibold text-slate-600">
+          {{ field.label }}
+          {% if field.field.required %}
+          <span class="text-xs font-bold uppercase tracking-wide text-rose-500">Obligatorio</span>
+          {% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}
+        <p class="text-xs text-slate-400">{{ field.help_text }}</p>
+        {% endif %}
+        {% for error in field.errors %}
+        <p class="text-xs text-red-600">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-wrap items-center justify-end gap-3">
+      <a
+        href="{% url 'invoice-list' %}"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800"
+      >
+        Cancelar
+      </a>
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:from-indigo-700 hover:to-purple-700"
+      >
+        Guardar factura
+      </button>
+    </div>
+  </form>
+
+  <div class="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-slate-200/60" ng-if="vm.previewHasContent()">
+    <h3 class="text-lg font-semibold text-slate-900">Previsualización</h3>
+    <p class="text-sm text-slate-500">Revisá los datos antes de confirmar.</p>
+    <dl class="mt-4 grid gap-4 md:grid-cols-2">
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Cliente</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('client', 'Seleccioná un cliente') ]]</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Número</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('number', 'Sin número') ]]</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Total</dt>
+        <dd class="text-sm font-medium text-slate-700">
+          [[ vm.isFilled('total') ? (vm.formData.total | currency:'$':2) : '$0.00' ]]
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Método de pago</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('payment_method', 'Sin método seleccionado') ]]</dd>
+      </div>
+    </dl>
+  </div>
+</section>
 {% endblock %}
