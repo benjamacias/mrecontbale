@@ -1,16 +1,97 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="text-2xl font-bold mb-4">Nuevo Usuario</h1>
-<form method="post" class="bg-white p-6 rounded shadow space-y-4 max-w-md">
-  {% csrf_token %}
-  {% for field in form %}
-  <div>
-    {{ field.label_tag }}
-    {{ field }}
-    {% if field.help_text %}<p class="text-sm text-gray-500">{{ field.help_text }}</p>{% endif %}
-    {% for error in field.errors %}<p class="text-red-500 text-sm">{{ error }}</p>{% endfor %}
+<section
+  class="mx-auto w-full max-w-4xl space-y-8"
+  ng-controller="FormController as vm"
+  ng-init='vm.init("user-form", [{"name": "username", "label": "Nombre de usuario"}, {"name": "email", "label": "Correo electrónico", "optional": true}, {"name": "role", "label": "Rol"}, {"name": "password1", "label": "Contraseña"}, {"name": "password2", "label": "Confirmación"}])'
+>
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-widest text-emerald-600">Nuevo usuario</p>
+      <h2 class="text-3xl font-semibold text-slate-900">Crear credenciales</h2>
+      <p class="text-sm text-slate-500">Asigná un rol y credenciales seguras para el nuevo miembro del equipo.</p>
+    </div>
+    <div class="rounded-2xl bg-white/80 px-4 py-3 text-right shadow-inner">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Avance</p>
+      <p class="text-2xl font-semibold text-emerald-600">[[ vm.completion ]]%</p>
+    </div>
   </div>
-  {% endfor %}
-  <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Guardar</button>
-</form>
+  <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+    <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 transition-all duration-500" ng-style="{ width: vm.completion + '%' }"></div>
+  </div>
+
+  <form
+    id="user-form"
+    method="post"
+    class="space-y-8 rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200/60"
+    novalidate
+  >
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+      {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="grid gap-6 md:grid-cols-2">
+      {% for field in form %}
+      <div class="space-y-1 {% if field.name == 'email' or field.name == 'role' %}md:col-span-2{% endif %}">
+        <label for="{{ field.id_for_label }}" class="text-sm font-semibold text-slate-600">
+          {{ field.label }}
+          {% if field.field.required %}
+          <span class="text-xs font-bold uppercase tracking-wide text-rose-500">Obligatorio</span>
+          {% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}
+        <p class="text-xs text-slate-400">{{ field.help_text }}</p>
+        {% endif %}
+        {% for error in field.errors %}
+        <p class="text-xs text-red-600">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-wrap items-center justify-end gap-3">
+      <a
+        href="{% url 'user-list' %}"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800"
+      >
+        Cancelar
+      </a>
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:from-emerald-600 hover:to-teal-600"
+      >
+        Guardar usuario
+      </button>
+    </div>
+  </form>
+
+  <div class="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-slate-200/60" ng-if="vm.previewHasContent()">
+    <h3 class="text-lg font-semibold text-slate-900">Previsualización</h3>
+    <p class="text-sm text-slate-500">Confirmá los datos del nuevo usuario.</p>
+    <dl class="mt-4 grid gap-4 md:grid-cols-2">
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Usuario</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('username', 'Sin usuario') ]]</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Correo</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('email', 'Sin correo') ]]</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Rol</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('role', 'Sin rol asignado') ]]</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Contraseña</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.isFilled('password1') ? '••••••••' : 'Pendiente' ]]</dd>
+      </div>
+    </dl>
+  </div>
+</section>
 {% endblock %}

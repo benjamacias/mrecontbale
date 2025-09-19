@@ -1,38 +1,552 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema Contable</title>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          keyframes: {
-            fadeIn: {
-              '0%': { opacity: 0 },
-              '100%': { opacity: 1 }
+<html lang="es" ng-app="accountingApp" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema Contable</title>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#0f172a",
+              },
+            },
+            keyframes: {
+              fadeIn: {
+                "0%": { opacity: 0, transform: "translateY(12px)" },
+                "100%": { opacity: 1, transform: "translateY(0)" },
+              },
+              pulseSoft: {
+                "0%, 100%": { opacity: 1 },
+                "50%": { opacity: 0.85 },
+              },
+            },
+            animation: {
+              fadeIn: "fadeIn 0.45s ease-out",
+              pulseSoft: "pulseSoft 3s ease-in-out infinite",
+            },
+          },
+        },
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      window.appConfig = {
+        navItems: [
+          {
+            label: "Clientes",
+            description: "Gestión de cartera",
+            href: "{% url 'client-list' %}",
+            icon: "users",
+          },
+          {
+            label: "Facturas",
+            description: "Control de facturación",
+            href: "{% url 'invoice-list' %}",
+            icon: "file-text",
+          },
+          {
+            label: "Usuarios",
+            description: "Roles y accesos",
+            href: "{% url 'user-list' %}",
+            icon: "shield",
+          },
+        ],
+        currentPath: "{{ request.path }}",
+      }
+    </script>
+  </head>
+  <body class="flex min-h-screen flex-col bg-slate-100 text-slate-800">
+    <header
+      class="relative z-10 bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-500 text-white shadow-xl"
+      ng-controller="LayoutController as layout"
+    >
+      <div class="container mx-auto px-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 py-6">
+          <div class="flex items-center gap-4">
+            <span
+              class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-2xl font-semibold shadow-inner"
+              aria-hidden="true"
+            >
+              Σ
+            </span>
+            <div>
+              <p class="text-sm uppercase tracking-wide text-white/75">Panel principal</p>
+              <h1 class="text-2xl font-semibold">Sistema Contable</h1>
+            </div>
+          </div>
+          <nav
+            class="hidden items-center gap-2 rounded-2xl bg-white/10 p-2 text-sm shadow-lg backdrop-blur-lg md:flex"
+            role="menubar"
+            aria-label="Secciones principales"
+          >
+            <a
+              ng-repeat="item in layout.navItems"
+              ng-href="[[ item.href ]]"
+              role="menuitem"
+              class="flex flex-col rounded-xl px-4 py-2 transition-all duration-200 hover:bg-white/20"
+              ng-class="{ 'bg-white text-blue-700 shadow-md': layout.isActive(item) }"
+            >
+              <span class="text-sm font-semibold">[[ item.label ]]</span>
+              <span class="text-xs text-white/70" ng-if="!layout.isActive(item)">[[ item.description ]]</span>
+              <span class="text-xs font-medium text-blue-700" ng-if="layout.isActive(item)">
+                Sección activa
+              </span>
+            </a>
+          </nav>
+          <div class="flex items-center gap-3">
+            <div class="hidden text-right sm:block">
+              {% if request.user.is_authenticated %}
+              <p class="text-xs uppercase tracking-wide text-white/70">Bienvenido</p>
+              <p class="text-sm font-semibold">
+                {{ request.user.get_full_name|default:request.user.get_username }}
+              </p>
+              {% else %}
+              <p class="text-xs uppercase tracking-wide text-white/70">Acceso</p>
+              <p class="text-sm font-semibold">Invitado</p>
+              {% endif %}
+            </div>
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-lg font-semibold shadow-md"
+              aria-hidden="true"
+            >
+              {% if request.user.is_authenticated %}
+              {{ request.user.get_username|default_if_none:""|first|default:"?"|upper }}
+              {% else %}
+              <span>?</span>
+              {% endif %}
+            </div>
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-xl bg-white/20 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-white shadow-md transition hover:bg-white/30 md:hidden"
+              ng-click="layout.toggleMenu()"
+              aria-expanded="[[ layout.menuOpen ? 'true' : 'false' ]]"
+              aria-controls="main-navigation"
+            >
+              <span>Menú</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <nav
+          id="main-navigation"
+          class="flex flex-col gap-2 pb-6 text-sm md:hidden"
+          ng-class="{ hidden: !layout.menuOpen }"
+          role="menubar"
+          aria-label="Secciones principales móviles"
+        >
+          <a
+            ng-repeat="item in layout.navItems"
+            ng-href="[[ item.href ]]"
+            role="menuitem"
+            class="rounded-xl px-4 py-3 font-semibold transition hover:bg-white/20"
+            ng-class="{ 'bg-white text-blue-700 shadow-lg': layout.isActive(item) }"
+            ng-click="layout.menuOpen = false"
+          >
+            [[ item.label ]]
+          </a>
+        </nav>
+      </div>
+    </header>
+    <main class="container mx-auto flex w-full flex-1 flex-col px-4 py-8 md:py-12">
+      <div class="animate-fadeIn space-y-8">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+    <footer class="bg-slate-900 py-6 text-sm text-slate-200">
+      <div class="container mx-auto flex flex-wrap items-center justify-between gap-3 px-4">
+        <p>&copy; {% now "Y" %} Estudio Contable. Todos los derechos reservados.</p>
+        <p class="text-xs text-slate-400">Versión de demostración mejorada con AngularJS.</p>
+      </div>
+    </footer>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script>
+      (function () {
+        "use strict"
+
+        var app = angular
+          .module("accountingApp", [])
+          .config([
+            "$interpolateProvider",
+            function ($interpolateProvider) {
+              $interpolateProvider.startSymbol("[[")
+              $interpolateProvider.endSymbol("]]")
+            },
+          ])
+
+        app.controller("LayoutController", [
+          "$window",
+          function ($window) {
+            var vm = this
+            var config = $window.appConfig || {}
+            vm.navItems = config.navItems || []
+            vm.currentPath = config.currentPath || ""
+            vm.menuOpen = false
+
+            vm.isActive = function (item) {
+              if (!item || !item.href) {
+                return false
+              }
+              return vm.currentPath.indexOf(item.href) === 0
+            }
+
+            vm.toggleMenu = function () {
+              vm.menuOpen = !vm.menuOpen
             }
           },
-          animation: {
-            fadeIn: 'fadeIn 0.5s ease-in-out'
-          }
-        }
-      }
-    }
-  </script>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
-  <header class="bg-blue-600 text-white p-4 shadow-md">
-    <nav class="flex space-x-4">
-      <a href="{% url 'client-list' %}" class="hover:text-gray-200 transition-colors duration-300">Clientes</a>
-      <a href="{% url 'invoice-list' %}" class="hover:text-gray-200 transition-colors duration-300">Facturas</a>
-      <a href="{% url 'user-list' %}" class="hover:text-gray-200 transition-colors duration-300">Usuarios</a>
-    </nav>
-  </header>
-  <main class="container mx-auto p-4 animate-fadeIn">
-    {% block content %}{% endblock %}
-  </main>
-</body>
+        ])
+
+        app.controller("FormController", [
+          "$scope",
+          "$timeout",
+          function ($scope, $timeout) {
+            var vm = this
+            vm.formData = {}
+            vm.fields = []
+            vm.preview = []
+            vm.selectLabels = {}
+            vm.completion = 0
+
+            vm.init = function (formId, fields, preview) {
+              vm.formId = formId
+              vm.fields = (fields || []).map(function (item) {
+                if (angular.isString(item)) {
+                  return { name: item, label: item, optional: false }
+                }
+                item.label = item.label || item.name
+                item.optional = !!item.optional
+                return item
+              })
+              var previewFields = preview || vm.fields
+              vm.preview = previewFields.map(function (item) {
+                if (angular.isString(item)) {
+                  return { name: item, label: item }
+                }
+                return {
+                  name: item.name,
+                  label: item.label || item.name,
+                }
+              })
+
+              $timeout(function () {
+                vm.captureSelectLabels()
+                vm.updateCompletion()
+              })
+            }
+
+            vm.captureSelectLabels = function () {
+              vm.selectLabels = {}
+              if (!vm.formId) {
+                return
+              }
+              var form = document.getElementById(vm.formId)
+              if (!form) {
+                return
+              }
+              angular.forEach(form.querySelectorAll("select"), function (select) {
+                var fieldName = select.getAttribute("name")
+                if (!fieldName) {
+                  return
+                }
+                vm.selectLabels[fieldName] = {}
+                angular.forEach(select.options, function (option) {
+                  vm.selectLabels[fieldName][option.value] = option.text
+                })
+              })
+            }
+
+            vm.isFilled = function (fieldName) {
+              var value = vm.formData[fieldName]
+              if (value === undefined || value === null) {
+                return false
+              }
+              if (angular.isArray(value)) {
+                return value.length > 0
+              }
+              return value.toString().trim().length > 0
+            }
+
+            vm.updateCompletion = function () {
+              var requiredFields = vm.fields.filter(function (field) {
+                return !field.optional
+              })
+              if (!requiredFields.length) {
+                vm.completion = 0
+                return
+              }
+              var completed = requiredFields.filter(function (field) {
+                return vm.isFilled(field.name)
+              }).length
+              vm.completion = Math.round((completed / requiredFields.length) * 100)
+            }
+
+            vm.previewHasContent = function () {
+              return vm.preview.some(function (field) {
+                return vm.isFilled(field.name)
+              })
+            }
+
+            vm.getPreviewValue = function (fieldName, fallback) {
+              fallback = fallback || "—"
+              if (!vm.isFilled(fieldName)) {
+                return fallback
+              }
+              var value = vm.formData[fieldName]
+              if (vm.selectLabels[fieldName]) {
+                return vm.selectLabels[fieldName][value] || fallback
+              }
+              return value
+            }
+
+            $scope.$watch(
+              function () {
+                return vm.formData
+              },
+              function () {
+                vm.updateCompletion()
+              },
+              true
+            )
+          },
+        ])
+
+        app.controller("ClientListController", [
+          function () {
+            var vm = this
+            vm.clients = []
+            vm.filteredClients = []
+            vm.filters = { search: "" }
+            vm.sort = { predicate: "name", reverse: false }
+            vm.stats = {
+              total: 0,
+              withEmail: 0,
+              withAddress: 0,
+            }
+
+            vm.init = function (dataElementId) {
+              var source = document.getElementById(dataElementId || "client-list-data")
+              if (source) {
+                try {
+                  vm.clients = JSON.parse(source.textContent)
+                } catch (error) {
+                  console.error("No se pudo leer la lista de clientes", error)
+                }
+              }
+              vm.applyFilters()
+            }
+
+            vm.applyFilters = function () {
+              var query = (vm.filters.search || "").toLowerCase()
+              vm.filteredClients = vm.clients.filter(function (client) {
+                if (!query) {
+                  return true
+                }
+                return ["name", "tax_id", "email", "address"].some(function (key) {
+                  var value = client[key]
+                  return value && value.toString().toLowerCase().indexOf(query) !== -1
+                })
+              })
+              vm.stats.total = vm.filteredClients.length
+              vm.stats.withEmail = vm.filteredClients.filter(function (client) {
+                return !!client.email
+              }).length
+              vm.stats.withAddress = vm.filteredClients.filter(function (client) {
+                return !!client.address
+              }).length
+            }
+
+            vm.toggleSort = function (predicate) {
+              if (vm.sort.predicate === predicate) {
+                vm.sort.reverse = !vm.sort.reverse
+              } else {
+                vm.sort.predicate = predicate
+                vm.sort.reverse = false
+              }
+            }
+          },
+        ])
+
+        app.controller("InvoiceListController", [
+          function () {
+            var vm = this
+            vm.invoices = []
+            vm.filteredInvoices = []
+            vm.filters = { search: "", payment: "" }
+            vm.sort = { predicate: "number", reverse: false }
+            vm.totalAmount = 0
+            vm.paymentMethods = []
+
+            vm.init = function (dataElementId) {
+              var source = document.getElementById(dataElementId || "invoice-list-data")
+              if (source) {
+                try {
+                  var parsed = JSON.parse(source.textContent)
+                  vm.invoices = parsed.map(function (invoice) {
+                    var amount = parseFloat(invoice.total)
+                    invoice.total_value = isNaN(amount) ? 0 : amount
+                    return invoice
+                  })
+                } catch (error) {
+                  console.error("No se pudo leer la lista de facturas", error)
+                }
+              }
+              vm.buildPaymentFilters()
+              vm.applyFilters()
+            }
+
+            vm.buildPaymentFilters = function () {
+              var seen = {}
+              vm.paymentMethods = []
+              vm.invoices.forEach(function (invoice) {
+                if (invoice.payment_method && !seen[invoice.payment_method]) {
+                  seen[invoice.payment_method] = true
+                  vm.paymentMethods.push({
+                    value: invoice.payment_method,
+                    label: invoice.payment_method_label || invoice.payment_method,
+                  })
+                }
+              })
+            }
+
+            vm.applyFilters = function () {
+              var query = (vm.filters.search || "").toLowerCase()
+              vm.filteredInvoices = vm.invoices.filter(function (invoice) {
+                var matchesSearch = true
+                if (query) {
+                  matchesSearch = [
+                    "number",
+                    "client",
+                    "payment_method",
+                    "payment_method_label",
+                  ].some(function (key) {
+                    var value = invoice[key]
+                    return value && value.toString().toLowerCase().indexOf(query) !== -1
+                  })
+                }
+                var matchesPayment = !vm.filters.payment || invoice.payment_method === vm.filters.payment
+                return matchesSearch && matchesPayment
+              })
+              vm.totalAmount = vm.filteredInvoices.reduce(function (acc, invoice) {
+                return acc + (invoice.total_value || 0)
+              }, 0)
+            }
+
+            vm.toggleSort = function (predicate) {
+              if (vm.sort.predicate === predicate) {
+                vm.sort.reverse = !vm.sort.reverse
+              } else {
+                vm.sort.predicate = predicate
+                vm.sort.reverse = false
+              }
+            }
+          },
+        ])
+
+        app.controller("UserListController", [
+          function () {
+            var vm = this
+            vm.users = []
+            vm.filteredUsers = []
+            vm.filters = { search: "", role: "" }
+            vm.sort = { predicate: "username", reverse: false }
+
+            vm.init = function (dataElementId) {
+              var source = document.getElementById(dataElementId || "user-list-data")
+              if (source) {
+                try {
+                  vm.users = JSON.parse(source.textContent)
+                } catch (error) {
+                  console.error("No se pudo leer la lista de usuarios", error)
+                }
+              }
+              vm.applyFilters()
+            }
+
+            vm.applyFilters = function () {
+              var query = (vm.filters.search || "").toLowerCase()
+              vm.filteredUsers = vm.users.filter(function (user) {
+                var matchesSearch = !query
+                  || ["username", "email", "role_label"].some(function (key) {
+                    var value = user[key]
+                    return value && value.toString().toLowerCase().indexOf(query) !== -1
+                  })
+                var matchesRole = !vm.filters.role || user.role === vm.filters.role
+                return matchesSearch && matchesRole
+              })
+            }
+
+            vm.toggleSort = function (predicate) {
+              if (vm.sort.predicate === predicate) {
+                vm.sort.reverse = !vm.sort.reverse
+              } else {
+                vm.sort.predicate = predicate
+                vm.sort.reverse = false
+              }
+            }
+          },
+        ])
+
+        app.controller("EntriesController", [
+          function () {
+            var vm = this
+            vm.entries = []
+            vm.filteredEntries = []
+            vm.filters = { search: "" }
+            vm.totals = { debit: 0, credit: 0 }
+
+            vm.init = function (dataElementId) {
+              var source = document.getElementById(dataElementId || "entries-data")
+              if (source) {
+                try {
+                  var parsed = JSON.parse(source.textContent)
+                  vm.entries = parsed.map(function (entry) {
+                    var amount = parseFloat(entry.amount)
+                    var balance = parseFloat(entry.balance)
+                    entry.amount_value = isNaN(amount) ? 0 : amount
+                    entry.balance_value = isNaN(balance) ? 0 : balance
+                    return entry
+                  })
+                } catch (error) {
+                  console.error("No se pudo leer los movimientos", error)
+                }
+              }
+              vm.applyFilters()
+            }
+
+            vm.applyFilters = function () {
+              var query = (vm.filters.search || "").toLowerCase()
+              vm.filteredEntries = vm.entries.filter(function (entry) {
+                if (!query) {
+                  return true
+                }
+                return ["description", "date"].some(function (key) {
+                  var value = entry[key]
+                  return value && value.toString().toLowerCase().indexOf(query) !== -1
+                })
+              })
+              vm.totals = vm.filteredEntries.reduce(
+                function (acc, entry) {
+                  var amount = entry.amount_value
+                  if (!isNaN(amount)) {
+                    if (amount >= 0) {
+                      acc.debit += amount
+                    } else {
+                      acc.credit += Math.abs(amount)
+                    }
+                  }
+                  return acc
+                },
+                { debit: 0, credit: 0 }
+              )
+            }
+          },
+        ])
+      })()
+    </script>
+    {% block extra_scripts %}{% endblock %}
+  </body>
 </html>

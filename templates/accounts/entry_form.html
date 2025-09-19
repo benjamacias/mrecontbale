@@ -1,9 +1,91 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="text-2xl font-bold mb-4">Nuevo movimiento para {{ client.name }}</h1>
-<form method="post" class="bg-white p-6 rounded shadow space-y-4 max-w-md">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Guardar</button>
-</form>
+<section
+  class="mx-auto w-full max-w-3xl space-y-8"
+  ng-controller="FormController as vm"
+  ng-init='vm.init("entry-form", [{"name": "description", "label": "Descripción"}, {"name": "amount", "label": "Monto"}])'
+>
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-widest text-blue-600">Nuevo movimiento</p>
+      <h2 class="text-3xl font-semibold text-slate-900">{{ client.name }}</h2>
+      <p class="text-sm text-slate-500">Registrá un ingreso o egreso asociado al cliente.</p>
+    </div>
+    <div class="rounded-2xl bg-white/80 px-4 py-3 text-right shadow-inner">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Avance</p>
+      <p class="text-2xl font-semibold text-blue-600">[[ vm.completion ]]%</p>
+    </div>
+  </div>
+  <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+    <div class="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-500 transition-all duration-500" ng-style="{ width: vm.completion + '%' }"></div>
+  </div>
+
+  <form
+    id="entry-form"
+    method="post"
+    class="space-y-6 rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200/60"
+    novalidate
+  >
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+      {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="space-y-4">
+      {% for field in form %}
+      <div class="space-y-1">
+        <label for="{{ field.id_for_label }}" class="text-sm font-semibold text-slate-600">
+          {{ field.label }}
+          {% if field.field.required %}
+          <span class="text-xs font-bold uppercase tracking-wide text-rose-500">Obligatorio</span>
+          {% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}
+        <p class="text-xs text-slate-400">{{ field.help_text }}</p>
+        {% endif %}
+        {% for error in field.errors %}
+        <p class="text-xs text-red-600">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-wrap items-center justify-end gap-3">
+      <a
+        href="{% url 'account-entries' client.id %}"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800"
+      >
+        Cancelar
+      </a>
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700"
+      >
+        Guardar movimiento
+      </button>
+    </div>
+  </form>
+
+  <div class="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-slate-200/60" ng-if="vm.previewHasContent()">
+    <h3 class="text-lg font-semibold text-slate-900">Previsualización</h3>
+    <p class="text-sm text-slate-500">Confirmá los datos antes de registrar el movimiento.</p>
+    <dl class="mt-4 grid gap-4 md:grid-cols-2">
+      <div class="md:col-span-2">
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Descripción</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('description', 'Sin descripción') ]]</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Monto</dt>
+        <dd class="text-sm font-medium text-slate-700">
+          [[ vm.isFilled('amount') ? (vm.formData.amount | currency:'$':2) : '$0.00' ]]
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
 {% endblock %}
