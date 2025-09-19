@@ -3,7 +3,13 @@
 <section
   class="mx-auto w-full max-w-4xl space-y-8"
   ng-controller="FormController as vm"
-  ng-init='vm.init("invoice-form", [{"name": "client", "label": "Cliente"}, {"name": "number", "label": "Número"}, {"name": "total", "label": "Total"}, {"name": "payment_method", "label": "Método de pago"}])'
+  ng-init='vm.init("invoice-form", [
+    {"name": "client", "label": "Cliente"},
+    {"name": "number", "label": "Número"},
+    {"name": "total", "label": "Total"},
+    {"name": "description", "label": "Descripción", "optional": true},
+    {"name": "payment_method", "label": "Método de pago"}
+  ])'
 >
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
@@ -83,6 +89,10 @@
       <div>
         <dt class="text-xs uppercase tracking-wide text-slate-400">Número</dt>
         <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('number', 'Sin número') ]]</dd>
+      </div>
+      <div class="md:col-span-2">
+        <dt class="text-xs uppercase tracking-wide text-slate-400">Descripción</dt>
+        <dd class="text-sm font-medium text-slate-700">[[ vm.getPreviewValue('description', 'Sin descripción') ]]</dd>
       </div>
       <div>
         <dt class="text-xs uppercase tracking-wide text-slate-400">Total</dt>

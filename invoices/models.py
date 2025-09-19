@@ -13,6 +13,7 @@ class Invoice(models.Model):
         on_delete=models.CASCADE,
         related_name="invoices",
     )
+    description = models.TextField(blank=True, default="")
     number = models.CharField(max_length=30, blank=True)
     issued_at = models.DateField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
@@ -43,9 +44,12 @@ class Invoice(models.Model):
     def send_email(self):
         """Enviar la factura al correo del cliente."""
         if self.client.email:
+            message_lines = [f"Total: {self.total}"]
+            if self.description:
+                message_lines.append(f"Descripción: {self.description}")
             send_mail(
                 subject=f"Factura {self.number}",
-                message=f"Total: {self.total}",
+                message="\n".join(message_lines),
                 from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
                 recipient_list=[self.client.email],
             )
