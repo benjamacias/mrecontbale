@@ -154,6 +154,19 @@
     </header>
     <main class="container mx-auto flex w-full flex-1 flex-col px-4 py-8 md:py-12">
       <div class="animate-fadeIn space-y-8">
+        {% if messages %}
+        <div class="space-y-3">
+          {% for message in messages %}
+          {% with tags=message.tags %}
+          <div
+            class="rounded-xl border px-4 py-3 text-sm font-medium {% if 'success' in tags %}border-emerald-200 bg-emerald-50 text-emerald-700{% elif 'error' in tags or 'danger' in tags %}border-rose-200 bg-rose-50 text-rose-700{% elif 'warning' in tags %}border-amber-200 bg-amber-50 text-amber-700{% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}"
+          >
+            {{ message }}
+          </div>
+          {% endwith %}
+          {% endfor %}
+        </div>
+        {% endif %}
         {% block content %}{% endblock %}
       </div>
     </main>
@@ -423,6 +436,8 @@
                     "description",
                     "payment_method",
                     "payment_method_label",
+                    "invoice_type",
+                    "invoice_type_label",
                   ].some(function (key) {
                     var value = invoice[key]
                     return value && value.toString().toLowerCase().indexOf(query) !== -1
@@ -498,6 +513,8 @@
             vm.filteredEntries = []
             vm.filters = { search: "" }
             vm.totals = { debit: 0, credit: 0 }
+            vm.selection = { count: 0, amount: 0 }
+            vm.selectAll = false
 
             vm.init = function (dataElementId) {
               var source = document.getElementById(dataElementId || "entries-data")
@@ -509,6 +526,7 @@
                     var balance = parseFloat(entry.balance)
                     entry.amount_value = isNaN(amount) ? 0 : amount
                     entry.balance_value = isNaN(balance) ? 0 : balance
+                    entry.selected = false
                     return entry
                   })
                 } catch (error) {
@@ -543,6 +561,45 @@
                 },
                 { debit: 0, credit: 0 }
               )
+              vm.refreshSelectionState()
+            }
+
+            vm.refreshSelectionState = function () {
+              var summary = vm.entries.reduce(
+                function (acc, entry) {
+                  if (entry.selected) {
+                    acc.count += 1
+                    var amount = entry.amount_value
+                    if (!isNaN(amount)) {
+                      acc.amount += amount
+                    }
+                  }
+                  return acc
+                },
+                { count: 0, amount: 0 }
+              )
+              vm.selection = summary
+              vm.selectAll =
+                vm.filteredEntries.length > 0 &&
+                vm.filteredEntries.every(function (entry) {
+                  return !!entry.selected
+                })
+            }
+
+            vm.onEntrySelectionChange = function () {
+              vm.refreshSelectionState()
+            }
+
+            vm.toggleSelectAll = function () {
+              if (!vm.filteredEntries.length) {
+                vm.selectAll = false
+                return
+              }
+              var shouldSelect = !vm.selectAll
+              vm.filteredEntries.forEach(function (entry) {
+                entry.selected = shouldSelect
+              })
+              vm.refreshSelectionState()
             }
           },
         ])

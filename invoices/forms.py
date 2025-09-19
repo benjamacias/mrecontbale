@@ -6,13 +6,21 @@ from .models import Invoice
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
-        fields = ["client", "number", "total", "description", "payment_method"]
+        fields = [
+            "client",
+            "number",
+            "total",
+            "description",
+            "invoice_type",
+            "payment_method",
+        ]
         labels = {
             "client": "Cliente",
             "number": "Número",
             "description": "Descripción",
             "total": "Total",
             "payment_method": "Método de pago",
+            "invoice_type": "Tipo de factura",
         }
         widgets = {
             "client": forms.Select(
@@ -73,6 +81,16 @@ class InvoiceForm(forms.ModelForm):
                         "focus:ring-blue-500/50"
                     ),
                     "ng-model": "vm.formData.payment_method",
+                }
+            ),
+            "invoice_type": forms.Select(
+                attrs={
+                    "class": (
+                        "w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 "
+                        "shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 "
+                        "focus:ring-blue-500/50"
+                    ),
+                    "ng-model": "vm.formData.invoice_type",
                 }
             ),
         }
